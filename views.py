@@ -78,3 +78,14 @@ def see_stats():
             cost += r.price
         savings = cost - 172.50
     return render_template('stats.html', time=time, savings=savings, num=num)
+
+
+@app.route('/all_activities')
+def see_activities():
+    activities = Multisport.query.all()
+
+    if activities:
+        return render_template('all_activities.html', activities= activities)
+
+    else:
+        print('no activities in database')

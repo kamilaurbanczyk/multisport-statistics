@@ -1,0 +1,39 @@
+{% extends 'layout.html' %}
+
+{% block body%}
+</br><h1>See all your activities:</h1></br>
+<table class="table table-striped">
+    <tr>
+        <th>Id</th>
+        <th>Gender</th>
+        <th>Category</th>
+        <th>Classes</th>
+        <th>Place</th>
+        <th>Instructor</th>
+        <th>Duration</th>
+        <th>Price</th>
+        <th>Date</th>
+        <th>Classes raiting</th>
+        <th>Performance raiting</th>
+        <th></th>
+        <th></th>
+    </tr>
+    {% for activity in activities %}
+        <tr>
+            <td>{{activity.id}}</td>
+            <td>{{activity.gender}}</td>
+            <td>{{activity.category}}</td>
+            <td>{{activity.classes}}</td>
+            <td>{{activity.place}}</td>
+            <td>{{activity.instructor}}</td>
+            <td>{{activity.duration}}</td>
+            <td>{{activity.price}}</td>
+            <td>{{activity.date}}</td>
+            <td>{{activity.classes_rate}}</td>
+            <td>{{activity.training_rate}}</td>
+            <td><a href="edit_article/{{activity.id}}" class="btn btn-default pull-right">Edit</a></td>
+            <td>
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}
