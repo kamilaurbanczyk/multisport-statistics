@@ -43,9 +43,12 @@ def submit():
         duration = request.form.get('duration')
         price = request.form.get('price')
         date = request.form.get('date')
+        classes_rate = request.form.get('classes_rate')
+        training_rate = request.form.get('training_rate')
 
         multi = Multisport(gender=gender, category=category, classes=classes, place=place, instructor=instructor,
-                           duration=duration, price=price, date=date)
+                           duration=duration, price=price, date=date, classes_rate=classes_rate,
+                           training_rate=training_rate)
         db.session.add(multi)
         db.session.commit()
         return render_template('success.html')
@@ -62,25 +65,16 @@ def see_stats():
         print(school, classes, instructors, start_date, end_date)
         results= Multisport.query.filter(Multisport.classes.in_(classes), Multisport.place.in_(school),
                                          Multisport.instructor.in_(instructors), Multisport.date >= start_date,
-                                         Multisport.date <= end_date)
+                                         Multisport.date <= end_date).all()
         num = Multisport.query.filter(Multisport.classes.in_(classes), Multisport.place.in_(school),
                                          Multisport.instructor.in_(instructors), Multisport.date >= start_date,
                                          Multisport.date <= end_date).count()
         time = 0
         cost = 0
-        query = results.all()
-        classes = set(query.classes)
-        n= 0
-        max = ''
-        for c in classes:
-            if results.filter(Multisport.classes == c).count >=n:
-                results.filter(Multisport.classes == c).count = n
-                max = c
-        most_pop = max
 
-        for r in results.all():
+        for r in results:
             print(r.place, r.classes, r.instructor, r.date)
             time += r.duration
             cost += r.price
         savings = cost - 172.50
-    return render_template('stats.html', time=time, savings=savings, num=num, most_pop=most_pop)
+    return render_template('stats.html', time=time, savings=savings, num=num)
