@@ -1,6 +1,18 @@
 from app import app, db, Multisport
-from flask import render_template, request
+from flask import render_template, request, redirect, url_for
+from wtforms import Form, StringField, DateTimeField, IntegerField, validators
 
+
+class ActivityForm(Form):
+    category = StringField('Category', [validators.Length(min=1, max=200)])
+    classes = StringField('Classes', [validators.Length(min=1, max=200)])
+    place = StringField('Place', [validators.Length(min=1, max=200)])
+    instructor = StringField('Instructor', [validators.Length(min=1, max=200)])
+    duration = IntegerField('Duration')
+    price = IntegerField('Price')
+    date = DateTimeField('Date')
+    classes_rate = IntegerField('Classes rate')
+    training_rate = IntegerField('Training rate')
 
 
 @app.route('/')
@@ -89,3 +101,48 @@ def see_activities():
 
     else:
         print('no activities in database')
+
+
+@app.route('/edit_activity/<id>', methods= ['POST', 'GET'])
+def edit_activity(id):
+    activity = Multisport.query.filter(Multisport.id == id).first()
+
+    form = ActivityForm(request.form)
+    form.category.data = activity.category
+    form.classes.data = activity.classes
+    form.instructor.data = activity.instructor
+    form.place.data = activity.place
+    form.duration.data = activity.duration
+    form.price.data = activity.price
+    form.date.data = activity.date
+    form.classes_rate.data = activity.classes_rate
+    form.training_rate.data = activity.training_rate
+
+    if request.method == 'POST' and form.validate():
+        category = request.form['category']
+        classes = request.form['classes']
+        instructor = request.form['instructor']
+        place = request.form['place']
+        duration = request.form['duration']
+        price = request.form['price']
+        date = request.form['date']
+        classes_rate = request.form['classes_rate']
+        training_rate = request.form['training_rate']
+
+        activity.category = category
+        activity.classes = classes
+        activity.instructor = instructor
+        activity.place = place
+        activity.duration = duration
+        activity.price = price
+        activity.date = date
+        activity.classes_rate = classes_rate
+        activity.training_rate = training_rate
+
+        db.session.commit()
+
+        return redirect(url_for('see_activities'))
+    return render_template('edit_activity.html', form=form)
+
+
+

@@ -1,0 +1,40 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="jumbotron text-center">
+    <div class="container">
+        <h1>Edit activity</h1>
+        {% from 'includes/_formhelpers.html' import render_field %}
+        <form method="POST" action="">
+            <div class="form-group">
+                {{render_field(form.category, class_='form-control')}}
+            </div>
+            <div class="form-group">
+                {{render_field(form.classes, class_='form-control')}}
+            </div>
+            <div class="form-group">
+                {{render_field(form.place, class_='form-control')}}
+            </div>
+            <div class="form-group">
+                {{render_field(form.instructor, class_='form-control')}}
+            </div>
+            <div class="form-group">
+                {{render_field(form.duration, class_='form-control')}}
+            </div>
+            <div class="form-group">
+                {{render_field(form.price, class_='form-control')}}
+            </div>
+            <div class="form-group">
+                {{render_field(form.date, class_='form-control')}}
+            </div>
+            <div class="form-group">
+                {{render_field(form.classes_rate, class_='form-control')}}
+            </div>
+            <div class="form-group">
+                {{render_field(form.training_rate, class_='form-control')}}
+            </div>
+            <p><input class="btn btn-primary" type="submit" value="Update"</p>
+        </form>
+    </div>
+</div>
+{% endblock %}
