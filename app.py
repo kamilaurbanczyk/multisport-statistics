@@ -9,8 +9,8 @@ db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
 manager = Manager(app)
-
 manager.add_command('db', MigrateCommand)
+
 
 class Multisport(db.Model):
     id = db.Column(db.Integer, primary_key= True)
@@ -24,6 +24,7 @@ class Multisport(db.Model):
     date = db.Column(db.DateTime, nullable=False)
     classes_rate = db.Column(db.Integer, nullable=True)
     training_rate = db.Column(db.Integer, nullable=True)
+
 
 from views import *
 

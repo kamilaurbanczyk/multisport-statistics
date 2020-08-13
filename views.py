@@ -1,13 +1,18 @@
 from app import app, db, Multisport
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, flash
 from wtforms import Form, StringField, DateTimeField, IntegerField, validators
+from sqlalchemy import func, create_engine
+from sqlalchemy.orm import sessionmaker
 
+engine = create_engine('mysql://root:23101996Kamila@localhost/multisport', echo=False)
+Session = sessionmaker(bind=engine)
+session = Session()
 
 class ActivityForm(Form):
     category = StringField('Category', [validators.Length(min=1, max=200)])
     classes = StringField('Classes', [validators.Length(min=1, max=200)])
     place = StringField('Place', [validators.Length(min=1, max=200)])
-    instructor = StringField('Instructor', [validators.Length(min=1, max=200)])
+    instructor = StringField('Instructor')
     duration = IntegerField('Duration')
     price = IntegerField('Price')
     date = DateTimeField('Date')
@@ -74,7 +79,6 @@ def see_stats():
         start_date = request.form.get('start_date')
         end_date = request.form.get('end_date')
 
-        print(school, classes, instructors, start_date, end_date)
         results= Multisport.query.filter(Multisport.classes.in_(classes), Multisport.place.in_(school),
                                          Multisport.instructor.in_(instructors), Multisport.date >= start_date,
                                          Multisport.date <= end_date).all()
@@ -84,12 +88,19 @@ def see_stats():
         time = 0
         cost = 0
 
+        count_classes = session.query(func.count(Multisport.classes), Multisport.classes).group_by(Multisport.classes).filter(Multisport.classes.in_(classes), Multisport.place.in_(school),Multisport.instructor.in_(instructors), Multisport.date >= start_date,Multisport.date <= end_date).all()
+
+        num_cat = len(count_classes)
+
+        for category in count_classes:
+            print('style: {}, {} classes'.format(category[1], category[0]))
+
         for r in results:
-            print(r.place, r.classes, r.instructor, r.date)
             time += r.duration
             cost += r.price
         savings = cost - 172.50
-    return render_template('stats.html', time=time, savings=savings, num=num)
+    return render_template('stats.html', time=time, savings=savings, num=num, most_popular= count_classes[0][1],
+                           least_popular= count_classes[num_cat-1][1])
 
 
 @app.route('/all_activities')
@@ -141,6 +152,7 @@ def edit_activity(id):
 
         db.session.commit()
 
+        flash('Data updated', 'success')
         return redirect(url_for('see_activities'))
     return render_template('edit_activity.html', form=form)
 

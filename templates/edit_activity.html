@@ -5,6 +5,8 @@
     <div class="container">
         <h1>Edit activity</h1>
         {% from 'includes/_formhelpers.html' import render_field %}
+    </div>
+    <div class="container">
         <form method="POST" action="">
             <div class="form-group">
                 {{render_field(form.category, class_='form-control')}}
@@ -33,7 +35,9 @@
             <div class="form-group">
                 {{render_field(form.training_rate, class_='form-control')}}
             </div>
-            <p><input class="btn btn-primary" type="submit" value="Update"</p>
+            <div class="form-group">
+                <input class="btn btn-primary" type="submit" value="Update">
+            </div>
         </form>
     </div>
 </div>
