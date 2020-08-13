@@ -8,6 +8,7 @@ engine = create_engine('mysql://root:23101996Kamila@localhost/multisport', echo=
 Session = sessionmaker(bind=engine)
 session = Session()
 
+
 class ActivityForm(Form):
     category = StringField('Category', [validators.Length(min=1, max=200)])
     classes = StringField('Classes', [validators.Length(min=1, max=200)])
@@ -24,17 +25,21 @@ class ActivityForm(Form):
 def index():
     return render_template('index.html')
 
+
 @app.route('/about')
 def about():
     return render_template('about.html')
+
 
 @app.route('/contact')
 def contact():
     return render_template('contact.html')
 
+
 @app.route('/activities')
 def add():
     return render_template('activities.html')
+
 
 @app.route('/filter')
 def show_stats():
@@ -47,9 +52,10 @@ def show_stats():
         instructors.add(activity.instructor)
         places.add(activity.place)
 
-    return render_template('filters.html', classes= classes, instructors= instructors, places= places)
+    return render_template('filters.html', classes=classes, instructors=instructors, places=places)
 
-@app.route('/submit', methods= ['GET', 'POST'])
+
+@app.route('/submit', methods=['GET', 'POST'])
 def submit():
     if request.method == 'POST':
         gender = request.form.get('gender')
@@ -70,6 +76,7 @@ def submit():
         db.session.commit()
         return render_template('success.html')
 
+
 @app.route('/stats', methods=['POST', 'GET'])
 def see_stats():
     if request.method == 'POST':
@@ -79,28 +86,45 @@ def see_stats():
         start_date = request.form.get('start_date')
         end_date = request.form.get('end_date')
 
-        results= Multisport.query.filter(Multisport.classes.in_(classes), Multisport.place.in_(school),
-                                         Multisport.instructor.in_(instructors), Multisport.date >= start_date,
-                                         Multisport.date <= end_date).all()
-        num = Multisport.query.filter(Multisport.classes.in_(classes), Multisport.place.in_(school),
-                                         Multisport.instructor.in_(instructors), Multisport.date >= start_date,
-                                         Multisport.date <= end_date).count()
+        results = Multisport.query.filter(Multisport.classes.in_(classes), Multisport.place.in_(school),
+                                          Multisport.instructor.in_(instructors), Multisport.date >= start_date,
+                                          Multisport.date <= end_date).all()
+        num = len(results)
         time = 0
         cost = 0
 
-        count_classes = session.query(func.count(Multisport.classes), Multisport.classes).group_by(Multisport.classes).filter(Multisport.classes.in_(classes), Multisport.place.in_(school),Multisport.instructor.in_(instructors), Multisport.date >= start_date,Multisport.date <= end_date).all()
+        class_categories = session.query(func.count(Multisport.classes), Multisport.classes).group_by(
+            Multisport.classes).filter(Multisport.classes.in_(classes), Multisport.place.in_(school),
+                                       Multisport.instructor.in_(instructors), Multisport.date >= start_date,
+                                       Multisport.date <= end_date).all()
 
-        num_cat = len(count_classes)
+        if len(class_categories) > 1:
+            least_popular = class_categories[-1][1]
+        else:
+            least_popular = '---'
 
-        for category in count_classes:
+        most_popular = class_categories[0][1]
+
+        for category in class_categories:
             print('style: {}, {} classes'.format(category[1], category[0]))
 
         for r in results:
             time += r.duration
             cost += r.price
         savings = cost - 172.50
-    return render_template('stats.html', time=time, savings=savings, num=num, most_popular= count_classes[0][1],
-                           least_popular= count_classes[num_cat-1][1])
+
+        class_rate_sum = 0
+        training_rate_sum = 0
+        for r in results:
+            class_rate_sum += r.classes_rate
+            training_rate_sum += r.training_rate
+        average_class_rate = round(class_rate_sum / num, 2)
+        average_training_rate = round(training_rate_sum / num, 2)
+
+    return render_template('stats.html', time=time, start_date=start_date, end_date=end_date, savings=savings, num=num,
+                           most_popular=most_popular,
+                           least_popular=least_popular, average_class_rate=average_class_rate,
+                           average_training_rate=average_training_rate)
 
 
 @app.route('/all_activities')
@@ -108,13 +132,13 @@ def see_activities():
     activities = Multisport.query.all()
 
     if activities:
-        return render_template('all_activities.html', activities= activities)
+        return render_template('all_activities.html', activities=activities)
 
     else:
         print('no activities in database')
 
 
-@app.route('/edit_activity/<id>', methods= ['POST', 'GET'])
+@app.route('/edit_activity/<id>', methods=['POST', 'GET'])
 def edit_activity(id):
     activity = Multisport.query.filter(Multisport.id == id).first()
 
@@ -156,5 +180,10 @@ def edit_activity(id):
         return redirect(url_for('see_activities'))
     return render_template('edit_activity.html', form=form)
 
-
-
+@app.route('/delete_activity/<id>', methods=['POST'])
+def delete_activity(id):
+    activity = Multisport.query.filter(Multisport.id == id).first()
+    db.session.delete(activity)
+    db.session.commit()
+    flash('Activity deleted', 'success')
+    return redirect(url_for('see_activities'))
