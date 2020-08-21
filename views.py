@@ -164,6 +164,7 @@ def submit():
                                training_rate=training_rate, user_id=user.id)
             db.session.add(multi)
             db.session.commit()
+
         except:
             flash('Fill in data!', 'danger')
             return redirect(url_for('add'))
