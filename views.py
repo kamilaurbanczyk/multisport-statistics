@@ -63,7 +63,7 @@ def register():
         db.session.commit()
 
         flash('You are now registered and can log in.', 'success')
-        redirect(url_for('/index'))
+        redirect(url_for('index'))
 
     return render_template('register.html', form=form)
 
@@ -85,13 +85,17 @@ def login():
             if sha256_crypt.verify(password_candidate, password):
                 session_flask['logged_in'] = True
                 session_flask['username'] = username
+                session_flask.permanent = True
 
                 flash('You are now logged in', 'success')
                 # app.logger.info('PASSWORD MATCHED')  <- shows up only in console!
                 return redirect(url_for('see_activities'))
             else:
-                error = 'Invalid login'
-                return render_template('/login.html', error=error)
+                flash('Invalid password', 'danger')
+                return redirect(url_for('login'))
+        else:
+            flash('Username not found', 'danger')
+            return redirect(url_for('login'))
 
     return render_template('login.html', form=form)
 
@@ -104,6 +108,7 @@ def is_logged_in(f):
         else:
             flash('Unauthorized, please login.', 'danger')
             return redirect(url_for('login'))
+
     return wrap
 
 
@@ -136,21 +141,6 @@ def add():
     return render_template('activities.html')
 
 
-@app.route('/filter')
-@is_logged_in
-def show_stats():
-    classes = set()
-    instructors = set()
-    places = set()
-
-    for activity in Multisport.query.all():
-        classes.add(activity.classes)
-        instructors.add(activity.instructor)
-        places.add(activity.place)
-
-    return render_template('filters.html', classes=classes, instructors=instructors, places=places)
-
-
 @app.route('/submit', methods=['GET', 'POST'])
 @is_logged_in
 def submit():
@@ -166,12 +156,36 @@ def submit():
         classes_rate = request.form.get('classes_rate')
         training_rate = request.form.get('training_rate')
 
-        multi = Multisport(gender=gender, category=category, classes=classes, place=place, instructor=instructor,
-                           duration=duration, price=price, date=date, classes_rate=classes_rate,
-                           training_rate=training_rate)
-        db.session.add(multi)
-        db.session.commit()
-        return render_template('success.html')
+        user = User.query.filter(User.username == session_flask['username']).first()
+
+        try:
+            multi = Multisport(gender=gender, category=category, classes=classes, place=place, instructor=instructor,
+                               duration=duration, price=price, date=date, classes_rate=classes_rate,
+                               training_rate=training_rate, user_id=user.id)
+            db.session.add(multi)
+            db.session.commit()
+        except:
+            flash('Fill in data!', 'danger')
+            return redirect(url_for('add'))
+
+    return render_template('success.html')
+
+
+@app.route('/filter')
+@is_logged_in
+def show_filters():
+    classes = set()
+    instructors = set()
+    places = set()
+
+    user = User.query.filter(User.username == session_flask['username']).first()
+
+    for activity in Multisport.query.filter(Multisport.user_id == user.id):
+        classes.add(activity.classes)
+        instructors.add(activity.instructor)
+        places.add(activity.place)
+
+    return render_template('filters.html', classes=classes, instructors=instructors, places=places)
 
 
 @app.route('/stats', methods=['POST', 'GET'])
@@ -184,9 +198,16 @@ def see_stats():
         start_date = request.form.get('start_date')
         end_date = request.form.get('end_date')
 
+        user = User.query.filter(User.username == session_flask['username']).first()
+
         results = Multisport.query.filter(Multisport.classes.in_(classes), Multisport.place.in_(school),
                                           Multisport.instructor.in_(instructors), Multisport.date >= start_date,
-                                          Multisport.date <= end_date).all()
+                                          Multisport.date <= end_date, Multisport.user_id == user.id).all()
+
+        if not results:
+            flash('No activities, change filters', 'danger')
+            return redirect(url_for('show_filters'))
+
         num = len(results)
         time = 0
         cost = 0
@@ -194,7 +215,7 @@ def see_stats():
         class_categories = session.query(func.count(Multisport.classes), Multisport.classes).group_by(
             Multisport.classes).filter(Multisport.classes.in_(classes), Multisport.place.in_(school),
                                        Multisport.instructor.in_(instructors), Multisport.date >= start_date,
-                                       Multisport.date <= end_date).all()
+                                       Multisport.date <= end_date, Multisport.user_id == user.id).all()
 
         class_categories = sorted(class_categories, key=itemgetter(0))
 
@@ -230,7 +251,8 @@ def see_stats():
 @app.route('/all_activities')
 @is_logged_in
 def see_activities():
-    activities = Multisport.query.all()
+    user = User.query.filter(User.username == session_flask['username']).first()
+    activities = Multisport.query.filter(Multisport.user_id == user.id)
 
     if activities:
         return render_template('all_activities.html', activities=activities)
@@ -282,6 +304,7 @@ def edit_activity(id):
         return redirect(url_for('see_activities'))
     return render_template('edit_activity.html', form=form)
 
+
 @app.route('/delete_activity/<id>', methods=['POST'])
 @is_logged_in
 def delete_activity(id):
@@ -290,5 +313,3 @@ def delete_activity(id):
     db.session.commit()
     flash('Activity deleted', 'success')
     return redirect(url_for('see_activities'))
-
-

@@ -24,6 +24,7 @@ class Multisport(db.Model):
     date = db.Column(db.DateTime, nullable=False)
     classes_rate = db.Column(db.Integer, nullable=True)
     training_rate = db.Column(db.Integer, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 
 class User(db.Model):
@@ -33,6 +34,8 @@ class User(db.Model):
     email = db.Column(db.String(200))
     password = db.Column(db.String(100))  # how to encrypt?
     join_date = db.Column(db.DateTime)
+
+    activities = db.relationship('Multisport', backref='user', lazy='dynamic')
 
 
 from views import *
