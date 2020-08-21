@@ -26,6 +26,15 @@ class Multisport(db.Model):
     training_rate = db.Column(db.Integer, nullable=True)
 
 
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    gender = db.Column(db.String(50))
+    username = db.Column(db.String(70), unique=True)
+    email = db.Column(db.String(200))
+    password = db.Column(db.String(100))  # how to encrypt?
+    join_date = db.Column(db.DateTime)
+
+
 from views import *
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-md">
-    <a class="navbar-brand" href="#">Logo</a>
+    <a class="navbar-brand" href="#">MS</a>
     <button class="navbar-toggler navbar-dark" type="button" data-toggle="collapse" data-target="#main-navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -17,12 +17,16 @@
             <li class="nav-item">
                 <a class="nav-link" href="/all_activities">All activities</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/about">About us</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/contact">Contact</a>
-            </li>
+            {% if session.logged_in %}
+                <li><a class="nav-link" href="/logout">Logout</a></li>
+            {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="/login">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/register">Register</a>
+                </li>
+            {% endif %}
         </ul>
     </div>
 </nav>

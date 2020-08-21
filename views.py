@@ -1,8 +1,13 @@
-from app import app, db, Multisport
+from app import app, db, Multisport, User
 from flask import render_template, request, redirect, url_for, flash
-from wtforms import Form, StringField, DateTimeField, IntegerField, validators
+from flask import session as session_flask
+from wtforms import Form, StringField, DateTimeField, IntegerField, validators, PasswordField
 from sqlalchemy import func, create_engine
 from sqlalchemy.orm import sessionmaker
+from passlib.hash import sha256_crypt
+from operator import itemgetter
+from datetime import datetime
+from functools import wraps
 
 engine = create_engine('mysql://root:23101996Kamila@localhost/multisport', echo=False)
 Session = sessionmaker(bind=engine)
@@ -21,6 +26,95 @@ class ActivityForm(Form):
     training_rate = IntegerField('Training rate')
 
 
+class RegisterForm(Form):
+    username = StringField('Username', [validators.Length(min=1, max=70)])
+    email = StringField('Email', [validators.Length(min=1, max=200)])
+    gender = StringField('Gender', [validators.Length(min=1, max=70)])
+    password = PasswordField('Password', [
+        validators.Length(min=8, max=50),
+        validators.DataRequired(),
+        validators.EqualTo('confirm', message='Passwords do not match')
+    ])
+    confirm = PasswordField('Confirm password')
+
+
+class LoginForm(Form):
+    username = StringField('Username', [validators.Length(min=1, max=70)])
+    password = PasswordField('Password', [
+        validators.Length(min=8, max=50),
+        validators.DataRequired()
+    ])
+
+
+@app.route('/register', methods=['POST', 'GET'])
+def register():
+    form = RegisterForm(request.form)
+
+    if request.method == 'POST' and form.validate():
+        username = form.username.data
+        email = form.email.data
+        gender = form.gender.data
+        password = sha256_crypt.encrypt(str(form.password.data))
+        join_date = datetime.today()
+
+        new_user = User(username=username, email=email, gender=gender, password=password, join_date=join_date)
+
+        db.session.add(new_user)
+        db.session.commit()
+
+        flash('You are now registered and can log in.', 'success')
+        redirect(url_for('/index'))
+
+    return render_template('register.html', form=form)
+
+
+@app.route('/login', methods=['POST', 'GET'])
+def login():
+    form = LoginForm(request.form)
+
+    if request.method == 'POST' and form.validate():
+        username = form.username.data
+        password_candidate = form.password.data
+
+        result = User.query.filter(User.username == username).first()
+
+        if result:
+            password = result.password
+
+            # Compare passwords
+            if sha256_crypt.verify(password_candidate, password):
+                session_flask['logged_in'] = True
+                session_flask['username'] = username
+
+                flash('You are now logged in', 'success')
+                # app.logger.info('PASSWORD MATCHED')  <- shows up only in console!
+                return redirect(url_for('see_activities'))
+            else:
+                error = 'Invalid login'
+                return render_template('/login.html', error=error)
+
+    return render_template('login.html', form=form)
+
+
+def is_logged_in(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if 'logged_in' in session_flask:
+            return f(*args, **kwargs)
+        else:
+            flash('Unauthorized, please login.', 'danger')
+            return redirect(url_for('login'))
+    return wrap
+
+
+@app.route('/logout')
+@is_logged_in
+def logout():
+    session_flask.clear()
+    flash('You are now logged out', 'success')
+    return redirect(url_for('login'))
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -37,11 +131,13 @@ def contact():
 
 
 @app.route('/activities')
+@is_logged_in
 def add():
     return render_template('activities.html')
 
 
 @app.route('/filter')
+@is_logged_in
 def show_stats():
     classes = set()
     instructors = set()
@@ -56,6 +152,7 @@ def show_stats():
 
 
 @app.route('/submit', methods=['GET', 'POST'])
+@is_logged_in
 def submit():
     if request.method == 'POST':
         gender = request.form.get('gender')
@@ -78,6 +175,7 @@ def submit():
 
 
 @app.route('/stats', methods=['POST', 'GET'])
+@is_logged_in
 def see_stats():
     if request.method == 'POST':
         school = request.form.getlist('school')
@@ -98,14 +196,16 @@ def see_stats():
                                        Multisport.instructor.in_(instructors), Multisport.date >= start_date,
                                        Multisport.date <= end_date).all()
 
+        class_categories = sorted(class_categories, key=itemgetter(0))
+
         if len(class_categories) > 1:
-            least_popular = class_categories[-1][1]
+            least_popular = class_categories[0][1]
         else:
             least_popular = '---'
 
-        most_popular = class_categories[0][1]
+        most_popular = class_categories[-1][1]
 
-        for category in class_categories:
+        for category in sorted(class_categories, key=itemgetter(0)):
             print('style: {}, {} classes'.format(category[1], category[0]))
 
         for r in results:
@@ -128,6 +228,7 @@ def see_stats():
 
 
 @app.route('/all_activities')
+@is_logged_in
 def see_activities():
     activities = Multisport.query.all()
 
@@ -139,6 +240,7 @@ def see_activities():
 
 
 @app.route('/edit_activity/<id>', methods=['POST', 'GET'])
+@is_logged_in
 def edit_activity(id):
     activity = Multisport.query.filter(Multisport.id == id).first()
 
@@ -181,9 +283,12 @@ def edit_activity(id):
     return render_template('edit_activity.html', form=form)
 
 @app.route('/delete_activity/<id>', methods=['POST'])
+@is_logged_in
 def delete_activity(id):
     activity = Multisport.query.filter(Multisport.id == id).first()
     db.session.delete(activity)
     db.session.commit()
     flash('Activity deleted', 'success')
     return redirect(url_for('see_activities'))
+
+
