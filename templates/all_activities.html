@@ -34,7 +34,7 @@
             <td>{{activity.training_rate}}</td>
             <td><a href="edit_activity/{{activity.id}}" class="btn btn-default pull-right">Edit</a></td>
             <td>
-                <form method="post" action="{{url_for('delete_activity', id=activity.id)}}">
+                <form method="post" action="{{url_for('delete_activity', activity_id=activity.id)}}">
                     <input type="hidden" name="_method" value="DELETE">
                     <input type="submit" class='btn btn-danger' value="Delete">
                 </form>

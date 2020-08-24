@@ -1,7 +1,8 @@
 from app import app, db, Multisport, User
 from flask import render_template, request, redirect, url_for, flash
 from flask import session as session_flask
-from wtforms import Form, StringField, DateTimeField, IntegerField, validators, PasswordField
+from wtforms import Form, StringField, DateTimeField, IntegerField, validators, PasswordField, SubmitField
+from wtforms.validators import InputRequired, DataRequired, Length
 from sqlalchemy import func, create_engine
 from sqlalchemy.orm import sessionmaker
 from passlib.hash import sha256_crypt
@@ -15,15 +16,16 @@ session = Session()
 
 
 class ActivityForm(Form):
-    category = StringField('Category', [validators.Length(min=1, max=200)])
-    classes = StringField('Classes', [validators.Length(min=1, max=200)])
-    place = StringField('Place', [validators.Length(min=1, max=200)])
+    category = StringField('Category', validators=[InputRequired()])
+    classes = StringField('Classes', validators=[InputRequired()])
+    place = StringField('Place', validators=[InputRequired()])
     instructor = StringField('Instructor')
     duration = IntegerField('Duration')
     price = IntegerField('Price')
     date = DateTimeField('Date')
     classes_rate = IntegerField('Classes rate')
     training_rate = IntegerField('Training rate')
+    submit = SubmitField("Submit")
 
 
 class RegisterForm(Form):
@@ -262,10 +264,10 @@ def see_activities():
         print('no activities in database')
 
 
-@app.route('/edit_activity/<id>', methods=['POST', 'GET'])
+@app.route('/edit_activity/<activity_id>', methods=['GET', 'POST'])
 @is_logged_in
-def edit_activity(id):
-    activity = Multisport.query.filter(Multisport.id == id).first()
+def edit_activity(activity_id):
+    activity = Multisport.query.filter(Multisport.id == activity_id).first()
 
     form = ActivityForm(request.form)
     form.category.data = activity.category
@@ -303,13 +305,14 @@ def edit_activity(id):
 
         flash('Data updated', 'success')
         return redirect(url_for('see_activities'))
+
     return render_template('edit_activity.html', form=form)
 
 
-@app.route('/delete_activity/<id>', methods=['POST'])
+@app.route('/delete_activity/<activity_id>', methods=['POST'])
 @is_logged_in
-def delete_activity(id):
-    activity = Multisport.query.filter(Multisport.id == id).first()
+def delete_activity(activity_id):
+    activity = Multisport.query.filter(Multisport.id == activity_id).first()
     db.session.delete(activity)
     db.session.commit()
     flash('Activity deleted', 'success')

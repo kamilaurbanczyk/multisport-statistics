@@ -1,21 +1,18 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_script import Manager
-from flask_migrate import Migrate, MigrateCommand
+
+# set ENV to 'dev' or 'prod'
+ENV = 'dev'
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 db = SQLAlchemy(app)
 
-migrate = Migrate(app, db)
-manager = Manager(app)
-manager.add_command('db', MigrateCommand)
-
 
 class Multisport(db.Model):
-    id = db.Column(db.Integer, primary_key= True)
+    id = db.Column(db.Integer, primary_key=True)
     gender = db.Column(db.String(50))
-    category = db.Column(db.String(50), nullable= True)
+    category = db.Column(db.String(50), nullable=True)
     classes = db.Column(db.String(50), nullable=False)
     place = db.Column(db.String(50), nullable=False)
     instructor = db.Column(db.String(50), nullable=True)
@@ -32,7 +29,7 @@ class User(db.Model):
     gender = db.Column(db.String(50))
     username = db.Column(db.String(70), unique=True)
     email = db.Column(db.String(200))
-    password = db.Column(db.String(100))  # how to encrypt?
+    password = db.Column(db.String(100))
     join_date = db.Column(db.DateTime)
 
     activities = db.relationship('Multisport', backref='user', lazy='dynamic')
@@ -42,5 +39,3 @@ from views import *
 
 if __name__ == "__main__":
     app.run()
-
-

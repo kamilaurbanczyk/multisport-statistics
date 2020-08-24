@@ -4,10 +4,11 @@
 <div class="jumbotron text-center">
     <div class="container">
         <h1>Edit activity</h1>
-        {% from 'includes/_formhelpers.html' import render_field %}
     </div>
     <div class="container">
+        {% from 'includes/_formhelpers.html' import render_field %}
         <form method="POST" action="">
+            {{ form.csrf_token }}
             <div class="form-group">
                 {{render_field(form.category, class_='form-control')}}
             </div>
@@ -36,7 +37,7 @@
                 {{render_field(form.training_rate, class_='form-control')}}
             </div>
             <div class="form-group">
-                <input class="btn btn-primary" type="submit" value="Update">
+                <button type="submit" class="btn btn-primary">Submit</button>
             </div>
         </form>
     </div>
