@@ -1,4 +1,4 @@
-from app import app, db, Multisport, User
+from app import app, db, Multisport, User, ENV
 from flask import render_template, request, redirect, url_for, flash
 from flask import session as session_flask
 from wtforms import Form, StringField, DateTimeField, IntegerField, validators, PasswordField, SubmitField
@@ -10,7 +10,12 @@ from operator import itemgetter
 from datetime import datetime
 from functools import wraps
 
-engine = create_engine('mysql://root:23101996Kamila@localhost/multisport', echo=False)
+if ENV == 'dev':
+    engine = create_engine('mysql://root:23101996Kamila@localhost/multisport', echo=False)
+
+elif ENV == 'prod':
+    engine = create_engine('postgres://pvqtcndijmkitc:e075ed42e6da1d8523df8a31ca19a28515de34ba4c0eef4cb4c5024676a6b25a@ec2-3-248-4-172.eu-west-1.compute.amazonaws.com:5432/ddtu103b0bn885', echo=False)
+
 Session = sessionmaker(bind=engine)
 session = Session()
 
