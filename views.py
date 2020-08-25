@@ -10,7 +10,7 @@ from passlib.hash import sha256_crypt
 from operator import itemgetter
 from datetime import datetime
 from functools import wraps
-import psycopg2
+from sqlalchemy.exc import DataError
 
 if ENV == 'dev':
     engine = create_engine('mysql://root:23101996Kamila@localhost/multisport', echo=False)
@@ -205,7 +205,7 @@ def see_stats():
                                           Multisport.instructor.in_(instructors), Multisport.date >= start_date,
                                           Multisport.date <= end_date, Multisport.user_id == user.id).all()
 
-        except psycopg2.errors.InvalidDatetimeFormat:
+        except DataError:
             flash('Select dates!', 'danger')
             return redirect(url_for('show_filters'))
 
