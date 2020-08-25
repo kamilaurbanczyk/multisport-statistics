@@ -1,4 +1,5 @@
-from app import app, db, Multisport, User, ENV
+from app import app, db, ENV
+from models import Multisport, User
 from flask import render_template, request, redirect, url_for, flash
 from flask import session as session_flask
 from wtforms import Form, StringField, DateTimeField, IntegerField, validators, PasswordField, SubmitField
@@ -113,7 +114,7 @@ def is_logged_in(f):
         if 'logged_in' in session_flask:
             return f(*args, **kwargs)
         else:
-            flash('Unauthorized, please login.', 'danger')
+            flash('Unauthorized, please log in.', 'danger')
             return redirect(url_for('login'))
 
     return wrap
@@ -130,16 +131,6 @@ def logout():
 @app.route('/')
 def index():
     return render_template('index.html')
-
-
-@app.route('/about')
-def about():
-    return render_template('about.html')
-
-
-@app.route('/contact')
-def contact():
-    return render_template('contact.html')
 
 
 @app.route('/activities')
