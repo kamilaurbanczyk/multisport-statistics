@@ -10,7 +10,7 @@ from passlib.hash import sha256_crypt
 from operator import itemgetter
 from datetime import datetime
 from functools import wraps
-from psycopg2 import errors
+import psycopg2
 
 if ENV == 'dev':
     engine = create_engine('mysql://root:23101996Kamila@localhost/multisport', echo=False)
