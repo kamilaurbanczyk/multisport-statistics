@@ -10,6 +10,7 @@ from passlib.hash import sha256_crypt
 from operator import itemgetter
 from datetime import datetime
 from functools import wraps
+from psycopg2 import errors
 
 if ENV == 'dev':
     engine = create_engine('mysql://root:23101996Kamila@localhost/multisport', echo=False)
@@ -199,9 +200,16 @@ def see_stats():
 
         user = User.query.filter(User.username == session_flask['username']).first()
 
-        results = Multisport.query.filter(Multisport.classes.in_(classes), Multisport.place.in_(school),
+        try:
+            results = Multisport.query.filter(Multisport.classes.in_(classes), Multisport.place.in_(school),
                                           Multisport.instructor.in_(instructors), Multisport.date >= start_date,
                                           Multisport.date <= end_date, Multisport.user_id == user.id).all()
+
+        except psycopg2.errors.InvalidDatetimeFormat:
+            flash('Select dates!', 'danger')
+            return redirect(url_for('show_filters'))
+
+
 
         if not results:
             flash('No activities, change filters', 'danger')
