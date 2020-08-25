@@ -10,7 +10,7 @@ from passlib.hash import sha256_crypt
 from operator import itemgetter
 from datetime import datetime
 from functools import wraps
-from sqlalchemy.exc import DataError
+from sqlalchemy.exc import DataError, OperationalError
 
 if ENV == 'dev':
     engine = create_engine('mysql://root:23101996Kamila@localhost/multisport', echo=False)
@@ -164,11 +164,15 @@ def submit():
             db.session.add(multi)
             db.session.commit()
 
-        except:
-            flash('Fill in data!', 'danger')
-            return redirect(url_for('add'))
+        except OperationalError:
+            if '' in [category, classes, instructor, duration, price, date, classes_rate, training_rate]:
+                flash('Fill in data!', 'danger')
+                return redirect(url_for('add'))
+            else:
+                flash('Price and duration must be numbers!', 'danger')
+                return redirect(url_for('add'))
 
-    return render_template('success.html')
+        return render_template('success.html')
 
 
 @app.route('/filter')
