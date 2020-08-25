@@ -269,7 +269,7 @@ def see_activities():
         return render_template('all_activities.html', activities=activities)
 
     else:
-        print('no activities in database')
+        return render_template('all_activities.html')
 
 
 @app.route('/edit_activity/<activity_id>', methods=['GET', 'POST'])
