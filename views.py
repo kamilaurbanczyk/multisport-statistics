@@ -251,7 +251,7 @@ def see_stats():
 @is_logged_in
 def see_activities():
     user = User.query.filter(User.username == session_flask['username']).first()
-    activities = Multisport.query.filter(Multisport.user_id == user.id)
+    activities = Multisport.query.filter(Multisport.user_id == user.id).order_by(Multisport.id.asc()).all()
 
     if activities:
         return render_template('all_activities.html', activities=activities)
