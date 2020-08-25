@@ -164,7 +164,7 @@ def submit():
             db.session.add(multi)
             db.session.commit()
 
-        except OperationalError:
+        except DataError:
             if '' in [category, classes, instructor, duration, price, date, classes_rate, training_rate]:
                 flash('Fill in data!', 'danger')
                 return redirect(url_for('add'))
