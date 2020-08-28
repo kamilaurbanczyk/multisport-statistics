@@ -10,7 +10,7 @@ from passlib.hash import sha256_crypt
 from operator import itemgetter
 from datetime import datetime
 from functools import wraps
-from sqlalchemy.exc import DataError, IntegrityError
+from sqlalchemy.exc import DataError, IntegrityError, OperationalError
 import random
 
 if ENV == 'dev':
@@ -179,6 +179,10 @@ def submit():
                 else:
                     flash('Price and duration must be numbers!', 'danger')
                     return redirect(url_for('add'))
+
+            except OperationalError:
+                flash('Special characters are not available!', 'danger')
+                return redirect(url_for('add'))
 
         return render_template('success.html')
 
