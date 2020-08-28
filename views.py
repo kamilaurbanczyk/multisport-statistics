@@ -156,24 +156,29 @@ def submit():
         classes_rate = request.form.get('classes_rate')
         training_rate = request.form.get('training_rate')
 
-        id = random.randint(100000,999999)
-
         user = User.query.filter(User.username == session_flask['username']).first()
 
-        try:
-            multi = Multisport(id =id, gender=gender, category=category, classes=classes, place=place, instructor=instructor,
-                               duration=duration, price=price, date=date, classes_rate=classes_rate,
-                               training_rate=training_rate, user_id=user.id)
-            db.session.add(multi)
-            db.session.commit()
+        while True:
+            try:
+                activity_id = random.randint(100000, 999999)
 
-        except DataError:
-            if '' in [category, classes, instructor, duration, price, date, classes_rate, training_rate]:
-                flash('Fill in data!', 'danger')
-                return redirect(url_for('add'))
-            else:
-                flash('Price and duration must be numbers!', 'danger')
-                return redirect(url_for('add'))
+                multi = Multisport(id=activity_id, gender=gender, category=category, classes=classes, place=place,
+                                   instructor=instructor, duration=duration, price=price, date=date,
+                                   classes_rate=classes_rate, training_rate=training_rate, user_id=user.id)
+                db.session.add(multi)
+                db.session.commit()
+                break
+
+            except IntegrityError:
+                continue
+
+            except DataError:
+                if '' in [category, classes, instructor, duration, price, date, classes_rate, training_rate]:
+                    flash('Fill in data!', 'danger')
+                    return redirect(url_for('add'))
+                else:
+                    flash('Price and duration must be numbers!', 'danger')
+                    return redirect(url_for('add'))
 
         return render_template('success.html')
 
@@ -266,7 +271,7 @@ def see_stats():
 @is_logged_in
 def see_activities():
     user = User.query.filter(User.username == session_flask['username']).first()
-    activities = Multisport.query.filter(Multisport.user_id == user.id).order_by(Multisport.id.asc()).all()
+    activities = Multisport.query.filter(Multisport.user_id == user.id).order_by(Multisport.date.desc()).all()
 
     if activities:
         return render_template('all_activities.html', activities=activities)
