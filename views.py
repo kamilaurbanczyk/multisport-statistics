@@ -177,7 +177,7 @@ def submit():
                     flash('Fill in data!', 'danger')
                     return redirect(url_for('add'))
                 else:
-                    flash('Price and duration must be numbers!', 'danger')
+                    flash('Price and duration must be integers!', 'danger')
                     return redirect(url_for('add'))
 
             except OperationalError:
