@@ -8,6 +8,8 @@
         <div class="form-group">
             <fieldset>
                 <h4>School:</h4>
+                <input type="checkbox" id="school" name="school" value="all">
+                    <label for="all">All</label>
                 {%for i in places%}
                     <input type="checkbox" id="{{i}}" name="school" value="{{i}}">
                     <label for="{{i}}">{{i}}</label>
@@ -17,6 +19,8 @@
         <div class="form-group">
             <fieldset>
                 <h4>Classes:</h4>
+                <input type="checkbox" id="classes" name="classes" value="all">
+                <label for="all">All</label>
                 {%for i in classes%}
                     <input type="checkbox" id="classes" name="classes" value="{{i}}">
                     <label for="{{i}}">{{i}}</label>
@@ -26,6 +30,8 @@
         <div class="form-group">
             <fieldset>
                 <h4>Instructors:</h4>
+                <input type="checkbox" id="instructors" name="instructors" value="all">
+                <label for="all">All</label>
                 {%for i in instructors%}
                     <input type="checkbox" id="instructors" name="instructors" value="{{i}}">
                     <label for="{{i}}">{{i}}</label>

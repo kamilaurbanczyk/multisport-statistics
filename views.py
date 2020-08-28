@@ -145,7 +145,6 @@ def add():
 @is_logged_in
 def submit():
     if request.method == 'POST':
-        gender = request.form.get('gender')
         category = request.form.get('category')
         classes = request.form.get('classes')
         place = request.form.get('place')
@@ -157,6 +156,7 @@ def submit():
         training_rate = request.form.get('training_rate')
 
         user = User.query.filter(User.username == session_flask['username']).first()
+        gender = user.gender
 
         while True:
             try:
@@ -212,6 +212,22 @@ def see_stats():
 
         user = User.query.filter(User.username == session_flask['username']).first()
 
+        if 'all' in school:
+            for activity in Multisport.query.filter(Multisport.user_id == user.id):
+                school.append(activity.place)
+
+        if 'all' in classes:
+            for activity in Multisport.query.filter(Multisport.user_id == user.id):
+                classes.append(activity.classes)
+
+        if 'all' in instructors:
+            for activity in Multisport.query.filter(Multisport.user_id == user.id):
+                instructors.append(activity.instructor)
+
+        classes = set(classes)
+        instructors = set(instructors)
+        school = set(school)
+
         try:
             results = Multisport.query.filter(Multisport.classes.in_(classes), Multisport.place.in_(school),
                                           Multisport.instructor.in_(instructors), Multisport.date >= start_date,
@@ -220,8 +236,6 @@ def see_stats():
         except DataError:
             flash('Select dates!', 'danger')
             return redirect(url_for('show_filters'))
-
-
 
         if not results:
             flash('No activities, change filters', 'danger')
