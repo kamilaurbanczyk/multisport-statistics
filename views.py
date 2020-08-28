@@ -10,7 +10,8 @@ from passlib.hash import sha256_crypt
 from operator import itemgetter
 from datetime import datetime
 from functools import wraps
-from sqlalchemy.exc import DataError
+from sqlalchemy.exc import DataError, IntegrityError
+import random
 
 if ENV == 'dev':
     engine = create_engine('mysql://root:23101996Kamila@localhost/multisport', echo=False)
@@ -155,10 +156,12 @@ def submit():
         classes_rate = request.form.get('classes_rate')
         training_rate = request.form.get('training_rate')
 
+        id = random.randint(100000,999999)
+
         user = User.query.filter(User.username == session_flask['username']).first()
 
         try:
-            multi = Multisport(gender=gender, category=category, classes=classes, place=place, instructor=instructor,
+            multi = Multisport(id =id, gender=gender, category=category, classes=classes, place=place, instructor=instructor,
                                duration=duration, price=price, date=date, classes_rate=classes_rate,
                                training_rate=training_rate, user_id=user.id)
             db.session.add(multi)
