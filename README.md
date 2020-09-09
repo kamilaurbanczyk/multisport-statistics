@@ -1,10 +1,13 @@
+![tekst alternatywny](https://github.com/kamilaurbanczyk/multisport-statistics/blob/master/images/1.png)
+
 # Multisport Statistics 
 Web app created with Python Flask framework. 
 ## Table of contents
 * [General info](#general-info)
 * [Technologies](#technologies)
 * [Features](#features)
-* [Launch](#launch)
+* [Screenshots](#screenshots)
+* [Site](#launch)
 
 ## General info
 Multisport Statistics was created to gather and process data about activities done while using Benefit System. Application allows to count savings made by using Multisport, 
@@ -17,7 +20,6 @@ Project is created with:
 * Flask-SQLAlchemy version 2.4.4
 * SQLAlchemy version 1.3.19
 * PostgreSQL
-* MySQL
 * HTML5
 * Bootstrap 4
 
@@ -31,5 +33,10 @@ Project is created with:
 * see most and least popular activities
 * list all of your activities
 
-## Launch 
+## Screenshots
+![Filters](https://github.com/kamilaurbanczyk/multisport-statistics/blob/master/images/3.png)
+![See stats](https://github.com/kamilaurbanczyk/multisport-statistics/blob/master/images/4.png)
+![Add activity](https://github.com/kamilaurbanczyk/multisport-statistics/blob/master/images/2.png)
+
+## Site
 Application is available on [Heroku](https://multisportstats.herokuapp.com/).
