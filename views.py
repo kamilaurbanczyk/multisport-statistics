@@ -1,26 +1,16 @@
-from app import app, db, ENV
+from app import app, db
 from models import Multisport, User
 from flask import render_template, request, redirect, url_for, flash
 from flask import session as session_flask
 from wtforms import Form, StringField, DateTimeField, IntegerField, validators, PasswordField, SubmitField
-from wtforms.validators import InputRequired, DataRequired, Length
-from sqlalchemy import func, create_engine
-from sqlalchemy.orm import sessionmaker
+from wtforms.validators import InputRequired
 from passlib.hash import sha256_crypt
-from operator import itemgetter
 from datetime import datetime
 from functools import wraps
 from sqlalchemy.exc import DataError, IntegrityError, OperationalError
+from statistic_functions import check_if_all, filter_activities, check_classes_popularity, count_ratings, \
+     count_savings, count_duration
 import random
-
-if ENV == 'dev':
-    engine = create_engine('mysql://root:23101996Kamila@localhost/multisport', echo=False)
-
-elif ENV == 'prod':
-    engine = create_engine('postgres://pvqtcndijmkitc:e075ed42e6da1d8523df8a31ca19a28515de34ba4c0eef4cb4c5024676a6b25a@ec2-3-248-4-172.eu-west-1.compute.amazonaws.com:5432/ddtu103b0bn885', echo=False)
-
-Session = sessionmaker(bind=engine)
-session = Session()
 
 
 class ActivityForm(Form):
@@ -98,7 +88,6 @@ def login():
                 session_flask.permanent = True
 
                 flash('You are now logged in', 'success')
-                # app.logger.info('PASSWORD MATCHED')  <- shows up only in console!
                 return redirect(url_for('see_activities'))
             else:
                 flash('Invalid password', 'danger')
@@ -216,72 +205,28 @@ def see_stats():
 
         user = User.query.filter(User.username == session_flask['username']).first()
 
-        if 'all' in school:
-            for activity in Multisport.query.filter(Multisport.user_id == user.id):
-                school.append(activity.place)
-
-        if 'all' in classes:
-            for activity in Multisport.query.filter(Multisport.user_id == user.id):
-                classes.append(activity.classes)
-
-        if 'all' in instructors:
-            for activity in Multisport.query.filter(Multisport.user_id == user.id):
-                instructors.append(activity.instructor)
-
-        classes = set(classes)
-        instructors = set(instructors)
-        school = set(school)
+        school, classes, instructors = check_if_all(school, classes, instructors, user)
 
         try:
-            results = Multisport.query.filter(Multisport.classes.in_(classes), Multisport.place.in_(school),
-                                          Multisport.instructor.in_(instructors), Multisport.date >= start_date,
-                                          Multisport.date <= end_date, Multisport.user_id == user.id).all()
+            activities = filter_activities(school, classes, instructors, start_date, end_date, user)
 
         except DataError:
             flash('Select dates!', 'danger')
             return redirect(url_for('show_filters'))
 
-        if not results:
+        if not activities:
             flash('No activities, change filters', 'danger')
             return redirect(url_for('show_filters'))
 
-        num = len(results)
-        time = 0
-        cost = 0
+        number_of_classes = len(activities)
+        duration = count_duration(activities)
+        savings = count_savings(activities)
+        most_popular, least_popular = check_classes_popularity(school, classes, instructors, start_date, end_date, user)
+        average_classes_rate, average_training_rate = count_ratings(activities)
 
-        class_categories = session.query(func.count(Multisport.classes), Multisport.classes).group_by(
-            Multisport.classes).filter(Multisport.classes.in_(classes), Multisport.place.in_(school),
-                                       Multisport.instructor.in_(instructors), Multisport.date >= start_date,
-                                       Multisport.date <= end_date, Multisport.user_id == user.id).all()
-
-        class_categories = sorted(class_categories, key=itemgetter(0))
-
-        if len(class_categories) > 1:
-            least_popular = class_categories[0][1]
-        else:
-            least_popular = '---'
-
-        most_popular = class_categories[-1][1]
-
-        for category in sorted(class_categories, key=itemgetter(0)):
-            print('style: {}, {} classes'.format(category[1], category[0]))
-
-        for r in results:
-            time += r.duration
-            cost += r.price
-        savings = cost - 172.50
-
-        class_rate_sum = 0
-        training_rate_sum = 0
-        for r in results:
-            class_rate_sum += r.classes_rate
-            training_rate_sum += r.training_rate
-        average_class_rate = round(class_rate_sum / num, 2)
-        average_training_rate = round(training_rate_sum / num, 2)
-
-    return render_template('stats.html', time=time, start_date=start_date, end_date=end_date, savings=savings, num=num,
-                           most_popular=most_popular,
-                           least_popular=least_popular, average_class_rate=average_class_rate,
+    return render_template('stats.html', duration=duration, start_date=start_date, end_date=end_date, savings=savings,
+                           number_of_classes=number_of_classes, most_popular=most_popular,
+                           least_popular=least_popular, average_classes_rate=average_classes_rate,
                            average_training_rate=average_training_rate)
 
 
