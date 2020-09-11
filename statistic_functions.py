@@ -2,6 +2,8 @@ from models import Multisport
 from app import session
 from operator import itemgetter
 from sqlalchemy import func
+from dateutil import rrule
+import datetime
 
 
 def check_if_all(school, classes, instructors, user):
@@ -28,7 +30,7 @@ def filter_activities(school, classes, instructors, start_date, end_date, user):
 
     return Multisport.query.filter(Multisport.classes.in_(classes), Multisport.place.in_(school),
                                    Multisport.instructor.in_(instructors), Multisport.date >= start_date,
-                                   Multisport.date <= end_date, Multisport.user_id == user.id).all()
+                                   Multisport.date <= end_date, Multisport.user_id == user.id).order_by(Multisport.date.desc()).all()
 
 
 def check_classes_popularity(school, classes, instructors, start_date, end_date, user):
@@ -73,10 +75,19 @@ def count_duration(activities):
     return duration
 
 
-def count_savings(activities):
-    cost = 0
+def count_savings(activities, multisport_price=172.50):
+
+    start_str = str(activities[-1].date)[:7] + '-01'
+    end_str = str(activities[0].date)[:7] + '-01'
+    start_date = datetime.datetime.strptime(start_str, '%Y-%m-%d')
+    end_date = datetime.datetime.strptime(end_str, '%Y-%m-%d')
+    number_of_months = len(list(rrule.rrule(rrule.MONTHLY, dtstart=start_date, until=end_date)))
+
+    multisport_cost = number_of_months * multisport_price
+    alternative_cost = 0
+
     for activity in activities:
-        cost += activity.price
-    savings = cost - 172.50
+        alternative_cost += activity.price
+    savings = alternative_cost - multisport_cost
     return savings
 
