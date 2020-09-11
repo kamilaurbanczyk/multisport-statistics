@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # set ENV to 'dev' or 'prod'
-ENV = 'dev'
+ENV = 'prod'
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')

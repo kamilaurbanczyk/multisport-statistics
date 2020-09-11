@@ -208,6 +208,7 @@ def see_stats():
         school, classes, instructors = check_if_all(school, classes, instructors, user)
 
         try:
+            # Filter and sort in descending order by date.
             activities = filter_activities(school, classes, instructors, start_date, end_date, user)
 
         except DataError:
@@ -220,7 +221,10 @@ def see_stats():
 
         number_of_classes = len(activities)
         duration = count_duration(activities)
+
+        # Send sorted activities to count_savings()
         savings = count_savings(activities)
+
         most_popular, least_popular = check_classes_popularity(school, classes, instructors, start_date, end_date, user)
         average_classes_rate, average_training_rate = count_ratings(activities)
 
