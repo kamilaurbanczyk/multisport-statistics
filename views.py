@@ -27,9 +27,9 @@ class ActivityForm(Form):
 
 
 class RegisterForm(Form):
-    username = StringField('Username', [validators.Length(min=1, max=70)])
-    email = StringField('Email', [validators.Length(min=1, max=200)])
-    gender = StringField('Gender', [validators.Length(min=1, max=70)])
+    username = StringField('Username', [validators.Length(min=8, max=70)])
+    email = StringField('Email', [validators.Length(min=8, max=100)])
+    gender = StringField('Gender', [validators.Length(min=3, max=30)])
     password = PasswordField('Password', [
         validators.Length(min=8, max=50),
         validators.DataRequired(),
@@ -39,7 +39,7 @@ class RegisterForm(Form):
 
 
 class LoginForm(Form):
-    username = StringField('Username', [validators.Length(min=1, max=70)])
+    username = StringField('Username', [validators.Length(min=8, max=70)])
     password = PasswordField('Password', [
         validators.Length(min=8, max=50),
         validators.DataRequired()
