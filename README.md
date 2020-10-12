@@ -1,4 +1,4 @@
-![tekst alternatywny](https://github.com/kamilaurbanczyk/multisport-statistics/blob/master/images/1.png)
+![tekst alternatywny](https://github.com/kamilaurbanczyk/multisport-statistics/blob/github/images/1.png)
 
 # Multisport Statistics 
 Web app created with Python Flask framework. 
@@ -34,9 +34,9 @@ Project is created with:
 * list all of your activities
 
 ## Screenshots
-![Filters](https://github.com/kamilaurbanczyk/multisport-statistics/blob/master/images/3.png)
-![See stats](https://github.com/kamilaurbanczyk/multisport-statistics/blob/master/images/4.png)
-![Add activity](https://github.com/kamilaurbanczyk/multisport-statistics/blob/master/images/2.png)
+![Filters](https://github.com/kamilaurbanczyk/multisport-statistics/blob/github/images/3.png)
+![See stats](https://github.com/kamilaurbanczyk/multisport-statistics/blob/github/images/4.png)
+![Add activity](https://github.com/kamilaurbanczyk/multisport-statistics/blob/github/images/2.png)
 
 ## Site
 Application is available on [Heroku](https://multisportstats.herokuapp.com/).
